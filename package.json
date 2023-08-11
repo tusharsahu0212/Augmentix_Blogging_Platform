@@ -1,0 +1,14 @@
+{
+  "name": "content-management-tool",
+  "version": "1.0.0",
+  "description": "node express mongodb app for create, read, update and delete the blogs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "author": "Tushar Sahu",
+  "license": "ISC"
+}
