@@ -2,7 +2,8 @@ const express = require("express");
 const mongoose = require('mongoose');
 const multer = require("multer");
 const ejs = require("ejs");
-const bodyParser = require("body-parser")
+const bodyParser = require("body-parser");
+const fs = require('fs');
 
 const app = express();
 
@@ -58,37 +59,46 @@ const userSchema = new mongoose.Schema({
 const Blog = mongoose.model('Blog', blogSchema);
 const User = mongoose.model('User', userSchema);
 
-
 const upload = multer({
-    limits: {
-        fileSize: 20 * 1024 * 1024
-    }
+    limits: 15 * 1024 * 1024
 });
 
-
 const cpUpload = upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }])
-
-app.get('/home', (req, res) => {
-    res.send("Home");
-})
-
 
 
 // create
 app.post('/upload', cpUpload, async (req, res) => {
 
+
+    if(req.files['image'][0].size>15728640){
+        return res.render('upload',{ALERT:true, message:"Image size may not larger than 15MB!"})
+    }
+
+    if(req.files['video']){
+        if(req.files['video'][0].size>15728640){
+            return res.render('upload',{ALERT:true, message:"Video size may not larger than 15MB!"})
+        }
+    }
+
+
+
     let imageBuffer = null;
     let videoBuffer = null;
 
-    if (req.body.image) {
+
+
+    if (req.files['image']) {
         imageBuffer = await req.files['image'][0].buffer;
 
     }
 
-    if (req.body.video) {
+    if (req.files['video']) {
         videoBuffer = await req.files['video'][0].buffer;
 
     }
+
+
+
 
     const newBlog = new Blog({
         title: req.body.title,
@@ -99,23 +109,66 @@ app.post('/upload', cpUpload, async (req, res) => {
 
     await newBlog.save();
 
-    User.findOne({ username: req.body.username }).then((data, err) => {
+    let prevblogs;
+    await User.findOne({ username: usernameSession, password: passwordSession }).then(async (data, err) => {
 
         if (err) {
             console.log(err);
+            res.status(404);
         } else {
-            data.blogs.push(newBlog);
+            prevblogs = data.blogs;
+            prevblogs.push(newBlog);
         }
-        res.status(200).send(data);
 
+        User.updateOne({ username: usernameSession, password: passwordSession }, { blogs: prevblogs }).then((data, err) => {
+
+            if (err) {
+                console.log(err);
+            }
+
+        });
+
+
+        fs.writeFileSync(`./public/media/image/${newBlog._id}.jpg`, imageBuffer, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Error saving file' });
+            }
+
+
+        });
+
+        if(videoBuffer){
+            fs.writeFileSync(`./public/media/video/${newBlog._id}.mp4`, videoBuffer, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ error: 'Error saving file' });
+                }
+    
+    
+            });
+        }
+  
+
+
+
+
+        return res.redirect('/myBlogs');
     });
+
+
+
 
 
 });
 
-app.get('/upload',(req,res)=>{
+app.get('/upload', (req, res) => {
 
-    res.render('upload');
+    if (usernameSession == null && passwordSession == null) {
+        return res.render("login", { ALERT: false });
+    }
+
+    return res.render('upload',{ALERT:false});
 });
 
 //read
@@ -123,9 +176,7 @@ app.get('/', (req, res) => {
 
     Blog.find().then((data) => {
 
-        console.log(data);
-        // res.status(200).send(data);
-        res.render("home",{data:data});
+        res.render("home", { data: data });
     });
 
 });
@@ -146,23 +197,22 @@ app.post('/myBlogs', (req, res) => {
     });
 });
 
-app.get('/myBlogs',(req,res)=>{
+app.get('/myBlogs', (req, res) => {
 
-    if(usernameSession==null && passwordSession==null){
-        res.render("login",{ALERT:false});
+    if (usernameSession == null && passwordSession == null) {
+        return res.render("login", { ALERT: false });
     }
 
     User.findOne({ username: usernameSession, password: passwordSession }).then((data, err) => {
 
-        // console.log(data);
         if (data) {
 
-            res.render('myBlogs',{data:data.blogs});
+            return res.render('myBlogs', { data: data.blogs, username: usernameSession });
 
 
         } else {
             console.log(err);
-        
+
         }
 
     });
@@ -217,19 +267,19 @@ app.delete('/delete', (req, res) => {
 app.post('/signUp', async (req, res) => {
 
     // console.log(req.body);
-    User.find({ username: req.body.username }).then(async(data,err) => {
+    User.find({ username: req.body.username }).then(async (data, err) => {
 
-        if(data){
+        if (data) {
 
-            res.render('signup',{ALERT:true});
-            
-        }else{
+            res.render('signup', { ALERT: true });
+
+        } else {
             const newUser = new User({
 
                 username: req.body.username,
                 password: req.body.password
             });
-        
+
             await newUser.save();
         }
 
@@ -244,7 +294,7 @@ app.post('/login', (req, res) => {
 
     User.findOne({ username: req.body.username }).then((data, err) => {
 
-        console.log(data);
+
         if (data) {
 
             if (data.password == req.body.password) {
@@ -253,13 +303,13 @@ app.post('/login', (req, res) => {
                 passwordSession = req.body.password;
 
                 // res.render('myBlogs',{data:data.blogs});
-                res.redirect('/myBlogs')
+                return res.redirect('/myBlogs')
             } else {
-                res.render('login',{message:"Incorrect Password!",ALERT:true});
+                return res.render('login', { message: "Incorrect Password!", ALERT: true });
             }
         } else {
             console.log(err);
-            res.render('login',{message:"User Not Found!",ALERT:true});
+            return res.render('login', { message: "User Not Found!", ALERT: true });
 
         }
 
@@ -268,7 +318,7 @@ app.post('/login', (req, res) => {
 });
 
 // logout User
-app.get('/logout',(req,res)=>{
+app.get('/logout', (req, res) => {
 
     usernameSession = null;
     passwordSession = null;
@@ -276,15 +326,21 @@ app.get('/logout',(req,res)=>{
 });
 
 // login page
-app.get('/login',(req,res)=>{
+app.get('/login', (req, res) => {
 
-    res.render('login',{ALERT:false});
+    res.render('login', { ALERT: false });
 });
 
 //signup page
-app.get('/signUp',(req,res)=>{
+app.get('/signUp', (req, res) => {
 
-    res.render('signup',{ALERT:false});
+    res.render('signup', { ALERT: false });
+});
+
+//Blog Page
+app.get('/blogPage:blog',(req,res)=>{
+
+    console.log(req.params);
 });
 
 app.listen(3000, () => {

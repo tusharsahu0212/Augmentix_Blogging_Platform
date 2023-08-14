@@ -41,17 +41,19 @@
           </nav>
     
           <div class="container d-flex gap-5 mt-3 flex-wrap justify-content-center align-items-start shadow p-1 bg-body rounded " style="height: 88vh;">
-            <% data.forEach((b)=>{ %>
+            <% data.forEach((blog)=>{ %>
+              <% imagePath = `media/image/${blog._id}.jpg` %>
                 <div class="card" style="width: 18rem;">
-                    <img src="..." class="card-img-top" alt="...">
+                    <img src=<%= imagePath %> class="card-img-top" alt="...">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <%= b.title %>
+                            <%= blog.title %>
                         </h5>
                         <p class="card-text">
-                            <%= b.content %>
+                            <%= blog.content %>
                         </p>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                        <% blogURL = `/blogPage?blogID=${blog._id}` %>
+                        <a href=<%= blogURL %> class="btn btn-primary">Explore</a>
                     </div>
                 </div>
                 <% }) %>
