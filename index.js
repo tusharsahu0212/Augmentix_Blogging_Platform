@@ -220,7 +220,7 @@ app.get('/myBlogs', (req, res) => {
 });
 
 // update
-app.put('/update', cpUpload, async (req, res) => {
+app.get('/update', cpUpload, async (req, res) => {
 
     let imageBuffer = null;
     let videoBuffer = null;
@@ -252,16 +252,7 @@ app.put('/update', cpUpload, async (req, res) => {
 
 });
 
-//delete
-app.delete('/delete', (req, res) => {
 
-    Blog.deleteOne({ _id: req.body.id }).then((data) => {
-
-        res.status(200).send(data);
-
-    });
-
-});
 
 //signUp
 app.post('/signUp', async (req, res) => {
@@ -338,9 +329,15 @@ app.get('/signUp', (req, res) => {
 });
 
 //Blog Page
-app.get('/blogPage:blog',(req,res)=>{
+app.get('/blogPage',(req,res)=>{
 
-    console.log(req.params);
+    // console.log(req.query);
+    Blog.findOne({_id:req.query.blogID}).then((data) => {
+
+        res.render("blogPage", { blog:data });
+
+    });
+
 });
 
 app.listen(3000, () => {
