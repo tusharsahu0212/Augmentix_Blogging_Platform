@@ -37,17 +37,17 @@
             </div>
           </nav>
     
-          <div class="container d-flex gap-5 mt-3 flex-wrap justify-content-center align-items-start shadow p-1 bg-body rounded " style="height: 88vh;">
+          <div class="container d-flex gap-5 mt-3 flex-wrap justify-content-center align-items-start shadow p-1 bg-body rounded " >
             <% data.forEach((blog)=>{ %>
               <% imagePath = `media/image/${blog._id}.jpg` %>
                 <div class="card" style="width: 18rem;">
                     <img src=<%= imagePath %> class="card-img-top" alt="...">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <%= blog.title %>
+                            <%= blog.title.slice(0,25)+"..." %>
                         </h5>
                         <p class="card-text">
-                            <%= blog.content %>
+                            <%= blog.content.slice(0.50)+"..." %>
                         </p>
                         <% blogURL = `/blogPage?blogID=${blog._id}` %>
                         <% deleteBlog = `/delete?deleteID=${blog._id}` %>

@@ -257,21 +257,27 @@ app.get('/update', cpUpload, async (req, res) => {
 //signUp
 app.post('/signUp', async (req, res) => {
 
-    // console.log(req.body);
+    console.log(req.body);
     User.find({ username: req.body.username }).then(async (data, err) => {
 
-        if (data) {
-
+        if (err) {
             res.render('signup', { ALERT: true });
+
 
         } else {
             const newUser = new User({
 
                 username: req.body.username,
                 password: req.body.password
+
             });
 
             await newUser.save();
+
+            usernameSession = req.body.username;
+            passwordSession = req.body.password;
+
+            res.redirect('/myblogs');
         }
 
     });

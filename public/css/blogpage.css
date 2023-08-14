@@ -7,3 +7,11 @@ video{
     width: 50%;
     height: auto;
 }
+
+h2{
+    word-wrap: break-word;
+}
+
+p{
+    word-wrap: break-word;
+}

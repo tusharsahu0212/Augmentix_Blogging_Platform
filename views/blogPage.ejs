@@ -36,14 +36,22 @@
             </div>
           </nav>
 
-          <div class="container  d-flex flex-column mb-3  justify-content-center align-items-center gap-4 mt-5 shadow p-1 bg-body rounded">
+          <div class="container d-flex  mt-5 shadow p-1 bg-body rounded" style="margin: auto auto;">
 
-            <h2><%= blog.title %></h2>
+            <div>
+              <h2 class="card-title"><%= blog.title %></h2>
+            </div>
+           
             <% imagePath = `media/image/${blog._id}.jpg` %>
             <img src=<%= imagePath %> alt="">
-            <p><%= blog.content%></p>
-            <% videoPath = `media/video/${blog._id}.mp4` %>
-            <video controls src=<%= videoPath %>></video>
+            <div>
+              <p><%= blog.content%></p>
+            </div>
+            <%  if(blog.video){ %>
+              <% videoPath = `media/video/${blog._id}.mp4` %>
+              <video controls src=<%= videoPath %>></video>
+          <% } %>  
+
 
           </div>
 
