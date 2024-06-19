@@ -8,4 +8,4 @@
 
 ### run `mongod` command to run your MongoDB sever.
 
-### run `node index.js` to start the app at localhost at port 3000.
+### run `node index.js` to start the app at localhost at port 8000.
